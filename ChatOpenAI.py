@@ -23,46 +23,50 @@ class ChatOpenAI():
         if(prompt):
             self.message.append({"role":"user","content": prompt})
 
-            stream = self.llm.chat.completions.create(
-                model = self.model,
-                messages = self.message,
-                tools = self.getToolsDefinition(),
-                stream = True
-            )
+        # 如果没有消息，直接返回空
+        if not self.message:
+            return {"content": "", "toolCalls": []}
 
-            content = ""
-            toolCalls = []
-            log(f"RESPONSE")
-            for chunk in stream:
-                delta = chunk.choices[0].delta
-                if delta.content:
-                    content += delta.content
-                if delta.tool_calls:
-                    # Chunk 工具调用情况
-                    for toolCallChunk in delta.tool_calls:
-                        if len(toolCalls) <= toolCallChunk.index:
-                            toolCalls.append({"id":"","function": {"name":"","arguments":""}})
-                        currentCall = toolCalls[toolCallChunk.index]
-                        if(toolCallChunk.id):
-                            currentCall["id"] +=toolCallChunk.id
-                        if(toolCallChunk.function.name):
-                            currentCall["function"]["name"] +=toolCallChunk.function.name
-                        if(toolCallChunk.function.arguments):
-                            currentCall["function"]["arguments"] +=toolCallChunk.function.arguments
-            self.message.append(
-                {
-                    "role":"assistant",
-                    "content":content,
-                    "tool_calls": [{
-                        "id":call["id"],
-                        "type":"function",
-                        "function":call["function"]
-                    } for call in toolCalls] if toolCalls else None
-                })
-            return {
+        stream = self.llm.chat.completions.create(
+            model = self.model,
+            messages = self.message,
+            tools = self.getToolsDefinition(),
+            stream = True
+        )
+
+        content = ""
+        toolCalls = []
+        log(f"RESPONSE")
+        for chunk in stream:
+            delta = chunk.choices[0].delta
+            if delta.content:
+                content += delta.content
+            if delta.tool_calls:
+                # Chunk 工具调用情况
+                for toolCallChunk in delta.tool_calls:
+                    if len(toolCalls) <= toolCallChunk.index:
+                        toolCalls.append({"id":"","function": {"name":"","arguments":""}})
+                    currentCall = toolCalls[toolCallChunk.index]
+                    if(toolCallChunk.id):
+                        currentCall["id"] +=toolCallChunk.id
+                    if(toolCallChunk.function.name):
+                        currentCall["function"]["name"] +=toolCallChunk.function.name
+                    if(toolCallChunk.function.arguments):
+                        currentCall["function"]["arguments"] +=toolCallChunk.function.arguments
+        self.message.append(
+            {
+                "role":"assistant",
                 "content":content,
-                "toolCalls":toolCalls
-            }   
+                "tool_calls": [{
+                    "id":call["id"],
+                    "type":"function",
+                    "function":call["function"]
+                } for call in toolCalls] if toolCalls else None
+            })
+        return {
+            "content":content,
+            "toolCalls":toolCalls
+        }   
 
     def appendToolResult(self,toolCallId:str,toolOutput:str):
         self.message.append({

@@ -33,8 +33,9 @@ class agent():
         
         response = await self.llm.chat(prompt=prompt)
         while True:
-            if len(response["toolCalls"]) > 0:
-                for tool_call in response["toolCalls"]:
+            tool_calls = response.get("toolCalls") or []
+            if len(tool_calls) > 0:
+                for tool_call in tool_calls:
                     mcp = next(
                         (client for client in self.mcpClients if any(
                             t["name"] == tool_call["function"]["name"] for t in client.get_tools()
