@@ -20,14 +20,13 @@ class MCPClient:
     async def close(self):
         try:
             self.session = None
-            # 安全关闭exit_stack，忽略所有异常
             try:
                 if hasattr(self, 'exit_stack'):
                     await self.exit_stack.aclose()
             except:
                 pass
         except:
-            pass  # 忽略所有异常
+            pass  
     def get_tools(self):
         return self.tools
 
@@ -56,7 +55,7 @@ class MCPClient:
         
         self.tools = []
     
-        # 转换Tool对象为字典
+        # 转换Tool对象
         for tool in tools:
             tool_dict = {
                 "name": tool.name if hasattr(tool, 'name') else str(tool),
