@@ -23,7 +23,7 @@ class ChatOpenAI():
         if(prompt):
             self.message.append({"role":"user","content": prompt})
 
-        # 如果没有消息，直接返回空
+
         if not self.message:
             return {"content": "", "toolCalls": []}
 
@@ -89,6 +89,6 @@ class ChatOpenAI():
 if __name__ == "__main__":
     
     prompt = '你是什么模型'
-    llm = ChatOpenAI('z-ai/glm-4.7-flash')
+    llm = ChatOpenAI('z-ai/glm-4.5-air:free')
     res = asyncio.run(llm.chat(prompt=prompt)) 
     print(res)
